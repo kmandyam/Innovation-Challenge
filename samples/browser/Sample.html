@@ -14,13 +14,13 @@
             <tr>
                 <td></td>
                 <td>
-                    <h1 style="font-weight:500;">Speech Recognition</h1>
-                    <h2 style="font-weight:500;">Microsoft Cognitive Services</h2>
+                    <h1 style="font-weight:500;">Pronunciation Game </h1>
+                    <h2 style="font-weight:500;">Welcome to Convo!</h2>
                 </td>
             </tr>
             <tr>
                 <td align="right"><a href="https://www.microsoft.com/cognitive-services/en-us/sign-up" target="_blank">Subscription</a>:</td>
-                <td><input id="key" type="text" size="40" value="YOUR_BING_SPEECH_API_KEY"></td>
+                <td><input id="key" type="text" size="40" value="81dcb46dec864016b26c277e88b0c266"></td>
             </tr>
             <tr>
                 <td align="right">Language:</td>
@@ -74,8 +74,8 @@
                 <td align="right">Format:</td>
                 <td align="left">
                     <select id="formatOptions">
-                        <option value="Simple" selected="selected">Simple Result</option>
-                        <option value="Detailed">Detailed Result</option>
+                        <option value="Simple">Simple Result</option>
+                        <option value="Detailed" selected>Detailed Result</option>
                     </select>
                 </td>
             </tr>
@@ -97,6 +97,21 @@
                 </td>
             </tr>
             <tr>
+                <td></td>
+                <td>
+                    <button id="generate">Generate New Phrase</button>
+                    <p id="textToPronounce"></p>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <!-- <button id="generate">Generate New Phrase</button> -->
+                    <p id="spokenText"></p>
+                    <p id="confidenceScore"></p>
+                    <p id="accuracy"></p>
+                </td>
+            </tr>
                 <td></td>
                 <td>
                     <table>
@@ -135,19 +150,19 @@
                 onComplete(window.SDK);
             }
         }
-        
+
         // Setup the recognizer
         function RecognizerSetup(SDK, recognitionMode, language, format, subscriptionKey) {
-            
+
             switch (recognitionMode) {
                 case "Interactive" :
-                    recognitionMode = SDK.RecognitionMode.Interactive;    
+                    recognitionMode = SDK.RecognitionMode.Interactive;
                     break;
                 case "Conversation" :
-                    recognitionMode = SDK.RecognitionMode.Conversation;    
+                    recognitionMode = SDK.RecognitionMode.Conversation;
                     break;
                 case "Dictation" :
-                    recognitionMode = SDK.RecognitionMode.Dictation;    
+                    recognitionMode = SDK.RecognitionMode.Dictation;
                     break;
                 default:
                     recognitionMode = SDK.RecognitionMode.Interactive;
@@ -164,7 +179,7 @@
 
 
             var useTokenAuth = false;
-            
+
             var authentication = function() {
                 if (!useTokenAuth)
                     return new SDK.CognitiveSubscriptionKeyAuthentication(subscriptionKey);
@@ -191,7 +206,7 @@
 
                 return new SDK.CognitiveTokenAuthentication(callback, callback);
             }();
-            
+
             var files = document.getElementById('filePicker').files;
             if (!files.length) {
                 return SDK.CreateRecognizer(recognizerConfig, authentication);
@@ -266,7 +281,7 @@
 
     <!-- Browser Hooks -->
     <script>
-        var startBtn, stopBtn, hypothesisDiv, phraseDiv, statusDiv;
+        var startBtn, stopBtn, generate, hypothesisDiv, phraseDiv, statusDiv;
         var key, languageOptions, formatOptions, recognitionMode, inputSource, filePicker;
         var SDK;
         var recognizer;
@@ -276,6 +291,7 @@
             createBtn = document.getElementById("createBtn");
             startBtn = document.getElementById("startBtn");
             stopBtn = document.getElementById("stopBtn");
+            generate = document.getElementById("generate");
             phraseDiv = document.getElementById("phraseDiv");
             hypothesisDiv = document.getElementById("hypothesisDiv");
             statusDiv = document.getElementById("statusDiv");
@@ -308,7 +324,7 @@
                     RecognizerStart(SDK, recognizer);
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                }                
+                }
             });
 
             key.addEventListener("focus", function () {
@@ -339,6 +355,13 @@
                 stopBtn.disabled = true;
             });
 
+            generate.addEventListener("click", function () {
+                var phrases = ["I like dogs", "I like to code on my computer", "I loved the Innovation Challenge"];
+                var randomNum = Math.floor(Math.random() * phrases.length);
+                var randomPhrase = phrases[randomNum];
+                document.getElementById("textToPronounce").innerHTML = randomPhrase;
+            });
+
             Initialize(function (speechSdk) {
                 SDK = speechSdk;
                 startBtn.disabled = false;
@@ -357,9 +380,9 @@
         }
 
         function UpdateRecognizedHypothesis(text, append) {
-            if (append) 
+            if (append)
                 hypothesisDiv.innerHTML += text + " ";
-            else 
+            else
                 hypothesisDiv.innerHTML = text;
 
             var length = hypothesisDiv.innerHTML.length;
@@ -375,12 +398,38 @@
         function UpdateRecognizedPhrase(json) {
             hypothesisDiv.innerHTML = "";
             phraseDiv.innerHTML += json + "\n";
+            document.getElementById("spokenText").innerHTML = "This is what you said: " + JSON.parse(json).NBest[0].Lexical;
+            document.getElementById("confidenceScore").innerHTML = "This is how confident we were of your sentence: " + JSON.parse(json).NBest[0].Confidence;
+
+            var correct = document.getElementById("textToPronounce").innerText;
+            var spoken = JSON.parse(json).NBest[0].Lexical;
+
+            var s1 = correct.split(" ");
+            var s2 = spoken.split(" ");
+
+            var num_correct = 0;
+            for(var i = 0; i < s1.length; i++) {
+              if(s1[i].toLowerCase() == s2[i].toLowerCase()) {
+                num_correct += 1;
+              }
+            }
+
+
+
+
+            document.getElementById("accuracy").innerHTML = "This is how accurate you were: " + num_correct / (s1.length * 1.0) ;
         }
 
         function OnComplete() {
             startBtn.disabled = false;
             stopBtn.disabled = true;
         }
+    </script>
+
+    <script>
+      function generateRandomPhrase() {
+
+      }
     </script>
 </body>
 </html>
